@@ -1,0 +1,76 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "MyTT"
+version = "4.0.0"
+description = "Typed NumPy implementations of TongDaXin and Wenhua technical-analysis formulas"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "MyTT contributors" }]
+keywords = ["technical-analysis", "quant", "tongdaxin", "wenhua", "indicators"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Financial and Insurance Industry",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+dependencies = ["numpy>=2.0"]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.2",
+  "coverage[toml]>=7.6",
+  "mypy>=1.14",
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "ruff>=0.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/mpquant/MyTT"
+Repository = "https://github.com/mpquant/MyTT"
+Issues = "https://github.com/mpquant/MyTT/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/MyTT"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers --cov=MyTT --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["MyTT"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise AssertionError", "raise NotImplementedError"]
+show_missing = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["A", "B", "C4", "E", "F", "I", "N", "NPY", "PERF", "PIE", "PT", "PTH", "RUF", "SIM", "UP"]
+ignore = ["N802", "N803", "N806", "N999"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+check_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true

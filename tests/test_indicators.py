@@ -110,3 +110,14 @@ def test_zero_denominators_are_reported_as_nan() -> None:
     assert np.isnan(RSI(flat, 6)[-1])
     assert np.isnan(CCI(flat, flat, flat, 6)[-1])
     assert np.isnan(WR(flat, flat, flat, 6)[0][-1])
+
+
+def test_expma_supports_indicator_and_builtin_alias_forms() -> None:
+    fast, slow = EXPMA([1, 2, 3])
+    np.testing.assert_allclose(fast, [1, 1.154, 1.438], atol=0.001)
+    assert slow.shape == fast.shape
+    np.testing.assert_allclose(EXPMA([1, 2, 3], 3), [1, 1.5, 2.25])
+    explicit_fast, explicit_slow = EXPMA([1, 2, 3], 2, 3)
+    assert explicit_fast.shape == explicit_slow.shape == fast.shape
+    with pytest.raises(ValueError, match="N1 is required"):
+        EXPMA([1, 2, 3], N2=3)

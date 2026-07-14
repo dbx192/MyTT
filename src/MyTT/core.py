@@ -653,8 +653,19 @@ def ROC(CLOSE: Any, N: int = 12, M: int = 6):
     return roc, MA(roc, M)
 
 
-def EXPMA(CLOSE: Any, N1: int = 12, N2: int = 50):
+def EXPMA(CLOSE: Any, N1: int | None = None, N2: int | None = None):
+    """Return the legacy two-line indicator or TongDaXin's EMA alias.
+
+    ``EXPMA(X)`` preserves MyTT's historical 12/50 two-line indicator.
+    ``EXPMA(X, N)`` follows the TongDaXin built-in and returns ``EMA(X, N)``.
+    """
     close = _array(CLOSE)
+    if N1 is None:
+        if N2 is not None:
+            raise ValueError("N1 is required when N2 is provided")
+        return EMA(close, 12), EMA(close, 50)
+    if N2 is None:
+        return EMA(close, N1)
     return EMA(close, N1), EMA(close, N2)
 
 

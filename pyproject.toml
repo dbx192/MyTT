@@ -3,9 +3,9 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "MyTT"
-version = "4.0.0"
-description = "Typed NumPy implementations of TongDaXin and Wenhua technical-analysis formulas"
+name = "MyTT_plus"
+version = "4.1.0"
+description = "基于 NumPy 的通达信、同花顺和文华财经公式函数库"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "GPL-3.0-or-later" }
@@ -33,9 +33,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mpquant/MyTT"
-Repository = "https://github.com/mpquant/MyTT"
-Issues = "https://github.com/mpquant/MyTT/issues"
+Homepage = "https://github.com/dbx192/MyTT"
+Repository = "https://github.com/dbx192/MyTT"
+Issues = "https://github.com/dbx192/MyTT/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/MyTT"]

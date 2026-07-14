@@ -32,6 +32,15 @@ def _period(value: Any, name: str = "N") -> int:
     return value
 
 
+def _period_or_zero(value: Any, name: str = "N") -> int:
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+        raise TypeError(f"{name} must be a non-negative integer")
+    value = int(value)
+    if value < 0:
+        raise ValueError(f"{name} must be a non-negative integer")
+    return value
+
+
 def _same(*values: Any) -> tuple[Array, ...]:
     arrays = tuple(_array(v) for v in values)
     length = max((len(v) for v in arrays), default=0)
@@ -54,6 +63,12 @@ def _rolling(series: Array, window: int, operation: str) -> Array:
         elif operation == "mean":
             out[end] = np.mean(values) if np.all(np.isfinite(values)) else np.nan
         elif operation == "std":
+            out[end] = (
+                np.std(values, ddof=1)
+                if values.size > 1 and np.all(np.isfinite(values))
+                else np.nan
+            )
+        elif operation == "stdp":
             out[end] = np.std(values, ddof=0) if np.all(np.isfinite(values)) else np.nan
         elif operation == "max":
             out[end] = np.max(values) if np.all(np.isfinite(values)) else np.nan
@@ -134,12 +149,22 @@ def IF(S: Any, A: Any, B: Any) -> Array:
     return np.where(condition, A, B)
 
 
-def REF(S: Any, N: int = 1) -> Array:
-    n = _period(N)
+def REF(S: Any, N: Any = 1) -> Array:
     values = _array(S)
     result = np.full(values.size, np.nan, dtype=float)
-    if n < values.size:
-        result[n:] = values[:-n]
+    if np.asarray(N).ndim == 0:
+        n = _period_or_zero(N)
+        if n == 0:
+            return values.copy()
+        if n < values.size:
+            result[n:] = values[:-n]
+        return result
+    periods = _array(N)
+    if periods.size != values.size:
+        raise ValueError("dynamic N must match S length")
+    for i, raw_period in enumerate(periods):
+        if np.isfinite(raw_period) and raw_period == int(raw_period) and 0 <= raw_period <= i:
+            result[i] = values[i - int(raw_period)]
     return result
 
 
@@ -158,9 +183,10 @@ def STD(S: Any, N: int) -> Array:
 
 def SUM(S: Any, N: int) -> Array:
     values = _array(S)
-    if N == 0:
+    n = _period_or_zero(N)
+    if n == 0:
         return np.cumsum(values, dtype=float)
-    return _rolling(values, N, "sum")
+    return _rolling(values, n, "sum")
 
 
 def CONST(S: Any) -> Array:
@@ -174,8 +200,15 @@ def _dynamic_extreme(S: Any, N: Any, operation: str) -> Array:
     values = _array(S)
     if np.asarray(N).ndim == 0:
         if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
-            raise TypeError("N must be a positive integer or a period series")
-        return _rolling(values, int(N), operation)
+            raise TypeError("N must be a non-negative integer or a period series")
+        n = _period_or_zero(N)
+        if n == 0:
+            return (
+                np.maximum.accumulate(values)
+                if operation == "max"
+                else np.minimum.accumulate(values)
+            )
+        return _rolling(values, n, operation)
     periods = _array(N)
     if periods.size != values.size:
         raise ValueError("dynamic N must match S length")
@@ -201,10 +234,11 @@ def LLV(S: Any, N: Any) -> Array:
 
 def HHVBARS(S: Any, N: int) -> Array:
     values = _array(S)
-    n = _period(N)
+    n = _period_or_zero(N)
     out = np.full(values.size, np.nan)
-    for i in range(n - 1, values.size):
-        window = values[i - n + 1 : i + 1]
+    start = 0 if n == 0 else n - 1
+    for i in range(start, values.size):
+        window = values[: i + 1] if n == 0 else values[i - n + 1 : i + 1]
         if np.all(np.isfinite(window)):
             out[i] = int(np.argmax(window[::-1]))
     return out
@@ -212,10 +246,11 @@ def HHVBARS(S: Any, N: int) -> Array:
 
 def LLVBARS(S: Any, N: int) -> Array:
     values = _array(S)
-    n = _period(N)
+    n = _period_or_zero(N)
     out = np.full(values.size, np.nan)
-    for i in range(n - 1, values.size):
-        window = values[i - n + 1 : i + 1]
+    start = 0 if n == 0 else n - 1
+    for i in range(start, values.size):
+        window = values[: i + 1] if n == 0 else values[i - n + 1 : i + 1]
         if np.all(np.isfinite(window)):
             out[i] = int(np.argmin(window[::-1]))
     return out
@@ -431,7 +466,7 @@ def VALUEWHEN(S: Any, X: Any) -> Array:
 
 def BETWEEN(S: Any, A: Any, B: Any) -> Array:
     values, a, b = _same(S, A, B)
-    return ((a < values) & (values < b)) | ((a > values) & (values > b))
+    return ((a <= values) & (values <= b)) | ((a >= values) & (values >= b))
 
 
 def TOPRANGE(S: Any) -> Array:

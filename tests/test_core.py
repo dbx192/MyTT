@@ -68,7 +68,7 @@ def test_rolling_aggregations_have_explicit_warmup() -> None:
     assert_array(MA(values, 3), [np.nan, np.nan, 2, 3])
     assert_array(SUM(values, 3), [np.nan, np.nan, 6, 9])
     assert_array(SUM(values, 0), [1, 3, 6, 10])
-    assert_array(STD(values, 2), [np.nan, 0.5, 0.5, 0.5])
+    assert_array(STD(values, 2), [np.nan, np.sqrt(0.5), np.sqrt(0.5), np.sqrt(0.5)])
     assert_array(HHV(values, 2), [np.nan, 2, 3, 4])
     assert_array(LLV(values, 2), [np.nan, 1, 2, 3])
     assert_array(AVEDEV(values, 2), [np.nan, 0.5, 0.5, 0.5])
@@ -99,7 +99,7 @@ def test_regression_functions() -> None:
     assert_array(SLOPE(values, 1), [0, 0, 0, 0, 0])
 
 
-@pytest.mark.parametrize("function", [MA, STD, HHV, LLV, EMA, WMA])
+@pytest.mark.parametrize("function", [MA, STD, EMA, WMA])
 @pytest.mark.parametrize("period", [0, -1, 1.5, True])
 def test_invalid_periods_are_rejected(function, period) -> None:
     expected = TypeError if isinstance(period, (float, bool)) else ValueError
@@ -124,3 +124,9 @@ def test_invalid_inputs_are_rejected() -> None:
         DMA([1, 2], 1.1)
     with pytest.raises(ValueError, match="dynamic N"):
         HHV([1, 2, 3], [1, 2])
+
+
+def test_tongdaxin_zero_period_and_dynamic_reference_semantics() -> None:
+    assert_array(HHV([3, 1, 4, 2], 0), [3, 3, 4, 4])
+    assert_array(LLV([3, 1, 4, 2], 0), [3, 1, 1, 1])
+    assert_array(REF([10, 20, 30, 40], [0, 1, 2, 1]), [10, 10, 10, 30])

@@ -50,7 +50,7 @@ def test_crosses_and_ranges() -> None:
     right = [2, 2, 2, 3, 4]
     np.testing.assert_array_equal(CROSS(left, right), [False, False, True, False, True])
     np.testing.assert_array_equal(LONGCROSS(left, right, 2), [False, False, True, False, False])
-    np.testing.assert_array_equal(BETWEEN([2, 2, 5], [1, 3, 5], [3, 1, 6]), [True, True, False])
+    np.testing.assert_array_equal(BETWEEN([2, 2, 5], [1, 3, 5], [3, 1, 6]), [True, True, True])
     np.testing.assert_array_equal(TOPRANGE([3, 1, 2, 4, 2]), [0, 0, 1, 3, 0])
     np.testing.assert_array_equal(LOWRANGE([3, 4, 2, 1, 2]), [0, 0, 2, 3, 0])
 

@@ -95,9 +95,14 @@ def test_macd_reference_values() -> None:
 
 def test_boll_reference_values() -> None:
     upper, middle, lower = BOLL([1, 2, 3, 4], N=2, P=2)
-    np.testing.assert_allclose(upper, [np.nan, 2.5, 3.5, 4.5], equal_nan=True)
+    offset = 2 * np.sqrt(0.5)
+    np.testing.assert_allclose(
+        upper, [np.nan, 1.5 + offset, 2.5 + offset, 3.5 + offset], atol=0.0005, equal_nan=True
+    )
     np.testing.assert_allclose(middle, [np.nan, 1.5, 2.5, 3.5], equal_nan=True)
-    np.testing.assert_allclose(lower, [np.nan, 0.5, 1.5, 2.5], equal_nan=True)
+    np.testing.assert_allclose(
+        lower, [np.nan, 1.5 - offset, 2.5 - offset, 3.5 - offset], atol=0.0005, equal_nan=True
+    )
 
 
 def test_zero_denominators_are_reported_as_nan() -> None:
